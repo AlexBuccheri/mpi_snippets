@@ -25,7 +25,8 @@ contains
   !!
   !! \p receive_send has ranks defined for the local process \p rank.
   !!
-  !! Example. Running with three processes, one needs two iterations of a ring for each process
+  !! Example.
+  !! Running with three processes, one needs two iterations of a ring for each process
   !! to exchange data with all other processes:
   !! 
   !! iround   receive_from    my_rank    send_to
