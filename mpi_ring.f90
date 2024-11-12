@@ -24,6 +24,18 @@ contains
   !> @brief Produce an index array of receive-from and send-to ranks per iteration of a ring pattern.
   !!
   !! \p receive_send has ranks defined for the local process \p rank.
+  !!
+  !! Example. Running with three processes, one needs two iterations of a ring for each process
+  !! to exchange data with all other processes:
+  !! 
+  !! iround   receive_from    my_rank    send_to
+  !!   1            2            0          1
+  !!   1            0            1          2
+  !!   1            1            2          0
+  !!   --------------------------------------------
+  !!   2            1            0          2
+  !!   2            2            1          0
+  !!   2            0            2          1
   subroutine mpi_ring_pattern_receive_send_ranks(rank, np, receive_send)
     integer,              intent(in ) :: rank               !< MPI rank
     integer,              intent(in ) :: np                 !< Number of MPI processes
