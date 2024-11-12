@@ -87,12 +87,15 @@ program mpi_ring
 
   integer :: rank, np, ierr, iprocess, send_id, rec_id, iround, send_index
   integer, allocatable :: collated_data(:), send_to(:), receive_from(:), initial_send_to(:), initial_receive_from(:), receive_send(:, :)
-  integer, parameter :: tag = 101
   integer :: status(MPI_STATUS_SIZE)
 
   integer :: i, cnt, n_values, n_local, ij
   integer, allocatable :: local_state_indices(:), indices(:, :), pair_indices(:, :)
 
+  integer :: reqs(2), stats(MPI_STATUS_SIZE, 2)
+  integer :: irecv, isend, rf, st, tag
+  integer :: send_buffer, recv_buffer
+  
   call MPI_INIT(ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, np, ierr)
@@ -102,7 +105,7 @@ program mpi_ring
   initial_receive_from = modulo([(i, i = 0, np-1)] - 1, np)
 
   ! Defines receive-from and send-to ranks for each round of the ring pattern
-  ! Defined specifically for each process
+  ! Defined specifically for this local MPI process
   allocate(receive_send(2, np -1))
   
   ! Round comm pattern
@@ -112,16 +115,38 @@ program mpi_ring
      receive_send(:, iround) = [receive_from(rank+1), send_to(rank+1)]
   enddo
 
+!!$  do iround = 1, np - 1
+!!$     write(*, *) "** Round ", iround, " **"
+!!$     if(rank ==0) write(*, *) 'receive-from, rank, send-to', receive_send(1, iround), rank, receive_send(2, iround)
+!!$     if(rank ==1) write(*, *) 'receive-from, rank, send-to', receive_send(1, iround), rank, receive_send(2, iround)
+!!$     if(rank ==2) write(*, *) 'receive-from, rank, send-to', receive_send(1, iround), rank, receive_send(2, iround)
+!!$  enddo
+
+  ! Start rounds with non-blocking communication
   do iround = 1, np - 1
-     write(*, *) "** Round ", iround, " **"
-     if(rank ==0) write(*, *) 'receive-from, rank, send-to', receive_send(1, iround), rank, receive_send(2, iround)
-     if(rank ==1) write(*, *) 'receive-from, rank, send-to', receive_send(1, iround), rank, receive_send(2, iround)
-     if(rank ==2) write(*, *) 'receive-from, rank, send-to', receive_send(1, iround), rank, receive_send(2, iround)
- enddo
+     ! Prepare buffers
+     send_buffer = rank
+     recv_buffer = -1
+     tag = iround
 
+     ! Asynchronous receive
+     rf = receive_send(1, iround)
+     call MPI_IRecv(recv_buffer, 1, MPI_INTEGER, rf, tag, MPI_COMM_WORLD, reqs(1), ierr)
 
+     ! Asynchronous send
+     st = receive_send(2, iround)
+     call MPI_ISend(send_buffer, 1, MPI_INTEGER, st, tag, MPI_COMM_WORLD, reqs(2), ierr)
+
+     ! Wait for both send and receive to complete
+     call MPI_Waitall(2, reqs, stats, ierr)
+
+     ! Output the result
+     write(*, *) "** Round ", iround, " Rank ", rank, " **"
+     write(*, *) 'receive-from, rank, send-to', rf, rank, st
+     write(*, *) 'Received value:', recv_buffer
+
+  enddo
   
   call MPI_FINALIZE(ierr)
-
 
 end program mpi_ring
