@@ -1,7 +1,19 @@
+! Copyright (C) 2024 Alexander Buccheri alexanderbuccheri@googlemail.com
+!
+! This program is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! This program is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+! GNU General Public License for more details.
+
 !> Test shared memory model for MPI
-! Compilation on mac
-! mpif90 -pedantic -fbacktrace -fbounds-check -Wl,-syslibroot,/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk shared_mem_mpi.f90 -o mpi_shared
-! mpirun -np 2 ./mpi_shared
+!! Compilation on my mac
+!! mpif90 -pedantic -fbacktrace -fbounds-check -Wl,-syslibroot,/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk shared_mem_mpi.f90 -o mpi_shared
+!! mpirun -np 2 ./mpi_shared
 program shared_mem_mpi
   use mpi_f08
   use, intrinsic :: iso_c_binding
